@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -41,6 +42,40 @@ func newGAServer(cfg *config) *gaServer {
 	}
 }
 
+func (as *gaServer) clone() bool {
+	if *as.cfg.initialize == false {
+		glog.V(2).Info("no initial repository clone requested")
+		return true
+	}
+	glog.V(2).Infof("clone initial repository: %s", *as.cfg.repository)
+
+	repoURL := GitProtocolHTTPS + *as.cfg.username + ":" + *as.cfg.password + "@" + *as.cfg.server + "/" + *as.cfg.account + "/" + *as.cfg.repository
+	var cloneArgs = []string{GitClone, repoURL}
+	if *as.cfg.directory != "" {
+		cloneArgs = append(cloneArgs, *as.cfg.directory)
+	}
+	_, err := Execute(GitCmd, cloneArgs)
+	if err != nil {
+		glog.Errorf("error: executing %s %s, returned: %v", GitCmd, GitClone, err)
+		return false
+	}
+	return true
+}
+
+func (as *gaServer) setDirectory() bool {
+
+	err := os.Chdir(*as.cfg.directory)
+	if err != nil {
+		glog.Errorf("error: executing chdir %s, returned: %v", *as.cfg.directory, err)
+		return false
+	}
+
+	dir, _ := os.Getwd()
+	glog.V(2).Infof("current working directory: %s", dir)
+
+	return true
+}
+
 func (as *gaServer) checkForUpdates() {
 	glog.V(2).Infof("checking for updates at: %v", time.Now())
 
@@ -58,6 +93,13 @@ func (as *gaServer) checkForUpdates() {
 
 func (as *gaServer) run() {
 	glog.V(2).Infof("starting run at: %v", time.Now())
+	if as.clone() == false {
+		return
+	}
+
+	if as.setDirectory() == false {
+		return
+	}
 
 	go Until(as.checkForUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
 	for {

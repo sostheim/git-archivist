@@ -17,18 +17,26 @@ limitations under the License.
 package main
 
 const (
-	// Git - git command name
+	// GitCmd - git command name
 	GitCmd = "git"
+	// GitClone - git subcommand clone
+	GitClone = "clone"
+	// GitProtocolHTTPS - git protocol
+	GitProtocolHTTPS = "https://"
+	// GitDefaultServer - git server hostname
+	GitDefaultServer = "github.com"
+	// GitDefaultAccount - git server account
+	GitDefaultAccount = "samsung-cnct"
+	// GitDefaultRepo - git respository
+	GitDefaultRepo = "cluster-manifests"
+	// GitDefaultUser - git username
+	GitDefaultUser = "api-robot"
 	// GitStatus - git subcommand status
 	GitStatus = "status"
 	// GitArgShort - --short
 	GitArgShort = "--short"
 	// GitArgNoUntracked - --untracked-files=no
 	GitArgNoUntracked = "--untracked-files=no"
-	// GitClone - git subcommand clone
-	GitClone = "clone"
-	// GithubHTTPS - github url root
-	GithubHTTPS = "https://github.com/"
 	// GitCommit - git subcommand commit
 	GitCommit = "commit"
 	// GitArgAM - --am
