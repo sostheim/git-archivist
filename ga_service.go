@@ -31,15 +31,32 @@ var (
 // GA Server
 type gaServer struct {
 	// Command line / environment supplied configuration values
-	cfg    *config
-	stopCh chan struct{}
+	cfg     *config
+	repoURL string
+	stopCh  chan struct{}
 }
 
 func newGAServer(cfg *config) *gaServer {
 	return &gaServer{
-		stopCh: make(chan struct{}),
-		cfg:    cfg,
+		stopCh:  make(chan struct{}),
+		cfg:     cfg,
+		repoURL: GitProtocolHTTPS + *cfg.username + ":" + *cfg.password + "@" + *cfg.server + "/" + *cfg.account + "/" + *cfg.repository + ".git",
 	}
+}
+
+func (as *gaServer) setDirectory() bool {
+
+	err := os.Chdir(*as.cfg.directory)
+	if err != nil {
+		glog.Errorf("error: executing chdir %s, returned: %v", *as.cfg.directory, err)
+		return false
+	}
+
+	if glog.V(2) {
+		dir, _ := os.Getwd()
+		glog.Infof("current working directory: %s", dir)
+	}
+	return true
 }
 
 func (as *gaServer) clone() bool {
@@ -49,8 +66,7 @@ func (as *gaServer) clone() bool {
 	}
 	glog.V(2).Infof("clone initial repository: %s", *as.cfg.repository)
 
-	repoURL := GitProtocolHTTPS + *as.cfg.username + ":" + *as.cfg.password + "@" + *as.cfg.server + "/" + *as.cfg.account + "/" + *as.cfg.repository
-	var cloneArgs = []string{GitClone, repoURL}
+	var cloneArgs = []string{GitClone, GitArgDepth, "1", as.repoURL}
 	if *as.cfg.directory != "" {
 		cloneArgs = append(cloneArgs, *as.cfg.directory)
 	}
@@ -62,18 +78,26 @@ func (as *gaServer) clone() bool {
 	return true
 }
 
-func (as *gaServer) setDirectory() bool {
-
-	err := os.Chdir(*as.cfg.directory)
+func (as *gaServer) pushUpdates() {
+	glog.V(2).Infof("push updates at: %v", time.Now())
+	_, err := Execute(GitCmd, []string{GitPush, as.repoURL, GitBranchMaster})
 	if err != nil {
-		glog.Errorf("error: executing chdir %s, returned: %v", *as.cfg.directory, err)
-		return false
+		glog.Warningf("error: executing %s %s %s %s, returned: %v",
+			GitCmd, GitPush, GitRemoteOrigin, GitBranchMaster, err)
 	}
+}
 
-	dir, _ := os.Getwd()
-	glog.V(2).Infof("current working directory: %s", dir)
-
-	return true
+func (as *gaServer) commitUpdates() {
+	glog.V(2).Infof("commit updates at: %v", time.Now())
+	commitAuthor := "\"" + *as.cfg.username + " <" + *as.cfg.email + ">\""
+	commitMessage := "\"" + "git-archivist: auto update: " + time.Now().String() + "\""
+	_, err := Execute(GitCmd, []string{GitCommit, GitArgAuthor, commitAuthor, GitArgAM, commitMessage})
+	if err != nil {
+		glog.Warningf("error: executing %s %s %s, returned: %v",
+			GitCmd, GitCommit, commitMessage, err)
+		return
+	}
+	as.pushUpdates()
 }
 
 func (as *gaServer) checkForUpdates() {
@@ -85,9 +109,18 @@ func (as *gaServer) checkForUpdates() {
 			GitCmd, GitStatus, GitArgShort, GitArgNoUntracked, err)
 		return
 	}
-	cmdOutString := strings.Split(string(cmdOutBytes), "\n")
-	if len(cmdOutString) > 0 {
-		glog.V(2).Infof("command output: %v", cmdOutString)
+	mods := false
+	outLines := strings.Split(string(cmdOutBytes), "\n")
+	if len(outLines) > 0 {
+		for _, line := range outLines {
+			if len(line) > 2 && line[1] == 77 {
+				mods = true
+				break
+			}
+		}
+	}
+	if mods {
+		as.commitUpdates()
 	}
 }
 
@@ -103,6 +136,6 @@ func (as *gaServer) run() {
 
 	go Until(as.checkForUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(3600 * time.Second)
 	}
 }

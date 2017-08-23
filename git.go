@@ -31,6 +31,10 @@ const (
 	GitDefaultRepo = "cluster-manifests"
 	// GitDefaultUser - git username
 	GitDefaultUser = "api-robot"
+	// GitDefaultEmail - git user's email address
+	GitDefaultEmail = "cnct.api.robot@gmail.com"
+	// GitArgDepth - --depth
+	GitArgDepth = "--depth"
 	// GitStatus - git subcommand status
 	GitStatus = "status"
 	// GitArgShort - --short
@@ -39,12 +43,18 @@ const (
 	GitArgNoUntracked = "--untracked-files=no"
 	// GitCommit - git subcommand commit
 	GitCommit = "commit"
-	// GitArgAM - --am
-	GitArgAM = "--am"
+	// GitArgAM - -am
+	GitArgAM = "-am"
+	// GitArgAuthor - --author
+	GitArgAuthor = "--author"
 	// GitPush - git subcommand push
 	GitPush = "push"
-	// GitOriginMaster - origin master
-	GitOriginMaster = "origin master"
+	// GitArgAll - --all
+	GitArgAll = "--all"
+	// GitRemoteOrigin - origin
+	GitRemoteOrigin = "origin"
+	// GitBranchMaster - master
+	GitBranchMaster = "master"
 	// GitRebase - git subcommand rebase
 	GitRebase = "rebase"
 	// GitAdd - git subcommand add

@@ -33,6 +33,7 @@ type config struct {
 	directory  *string
 	username   *string
 	password   *string
+	email      *string
 	version    *bool
 	initialize *bool
 	frequency  *int
@@ -44,17 +45,18 @@ func newConfig() *config {
 		account:    flag.String("account", GitDefaultAccount, "git account/owner/organization for repository to clone"),
 		repository: flag.String("repository", GitDefaultRepo, "git repository to manage for archiving local updates"),
 		directory:  flag.String("directory", "", "Required: The name of a new / existing repository directory to clone into / work in"),
-		username:   flag.String("username", GitDefaultUser, "git remote login userername"),
+		username:   flag.String("username", GitDefaultUser, "git remote login username"),
 		password:   flag.String("password", "", "Required: git remote login password"),
+		email:      flag.String("email", GitDefaultEmail, "Required: git user's email address"),
 		version:    flag.Bool("version", false, "display version info and exit"),
-		initialize: flag.Bool("initial-clone", true, "intialize the state of the repository by cloning the remote"),
-		frequency:  flag.Int("sync-interval", 300, "number of seconds between upstream sync's when changes are present"),
+		initialize: flag.Bool("initial-clone", true, "initialize the state of the repository by cloning the remote"),
+		frequency:  flag.Int("sync-interval", 60, "number of seconds between upstream sync's when changes are present"),
 	}
 }
 
 func (cfg *config) String() string {
-	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, username: %s, password: %s, frequency: %d, initialize: %t, version: %t",
-		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory, *cfg.username, *cfg.password, *cfg.frequency, *cfg.initialize, *cfg.version)
+	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, username: %s, password: %s, email: %s, frequency: %d, initialize: %t, version: %t",
+		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory, *cfg.username, *cfg.password, *cfg.email, *cfg.frequency, *cfg.initialize, *cfg.version)
 }
 
 var envSupport = map[string]bool{
@@ -64,6 +66,7 @@ var envSupport = map[string]bool{
 	"directory":  true,
 	"username":   true,
 	"password":   true,
+	"email":      true,
 	"version":    false,
 	"initialize": true,
 	"frequency":  true,
