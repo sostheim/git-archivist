@@ -7,15 +7,15 @@ TAG       ?= latest
 godep=GOPATH=$(shell godep path):${GOPATH}
 
 build:
-	@go build -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+	go build -ldflags "-X main.MajorMinorPatch=$(VERSION) \
 		-X main.ReleaseType=$(TYPE) \
-		-X main.GitCommit=$(COMMIT)"
+		-X main.GitCommitSha=$(COMMIT)"
 
 compile: deps
 	@rm -rf build/
 	@$(GODEP) gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-									-X main.ReleaseType=$(TYPE) \
-									-X main.GitCommit=$(COMMIT) -w" \
+		-X main.ReleaseType=$(TYPE) \
+		-X main.GitCommitSha=$(COMMIT) -w" \
 	-osarch="linux/386" \
 	-osarch="linux/amd64" \
 	-osarch="darwin/amd64" \
@@ -23,9 +23,9 @@ compile: deps
 	./...
 
 install:
-	@godep go install -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-									-X main.ReleaseType=$(TYPE) \
-									-X main.GitCommit=$(COMMIT) -w"
+	@$(GODEP) go install -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+		-X main.ReleaseType=$(TYPE) \
+		-X main.GitCommitSha=$(COMMIT) -w"
 
 deps:
 	go get github.com/mitchellh/gox
@@ -42,8 +42,8 @@ dist: compile
 
 container:
 	@$(GODEP) gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-									-X main.ReleaseType=$(TYPE) \
-									-X main.GitCommit=$(COMMIT) -w" \
+		-X main.ReleaseType=$(TYPE) \
+		-X main.GitCommitSha=$(COMMIT) -w" \
 	-osarch="linux/amd64" \
 	-output "build/{{.OS}}_{{.Arch}}/$(NAME)" \
 	./...

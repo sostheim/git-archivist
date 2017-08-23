@@ -27,7 +27,10 @@ import (
 
 type config struct {
 	flagSet    *flag.FlagSet
+	server     *string
+	account    *string
 	repository *string
+	directory  *string
 	username   *string
 	password   *string
 	version    *bool
@@ -36,21 +39,27 @@ type config struct {
 
 func newConfig() *config {
 	return &config{
-		repository: flag.String("repository", "", "git repository to manage for archiving local updates"),
-		username:   flag.String("username", "", "git remote userername"),
-		password:   flag.String("password", "", "git remote user's password"),
+		server:     flag.String("server", "github.com", "git repository host"),
+		account:    flag.String("account", "samsung-cnct", "git account/owner/organization for repository to clone"),
+		repository: flag.String("repository", "cluster-manifests", "git repository to manage for archiving local updates"),
+		directory:  flag.String("directory", "", "The name of a new directory to clone into."),
+		username:   flag.String("username", "api-robot", "git remote login userername"),
+		password:   flag.String("password", "", "git remote login password"),
 		version:    flag.Bool("version", false, "display version info and exit"),
 		frequency:  flag.Int("sync-interval", 300, "number of seconds between upstream sync's when changes are present"),
 	}
 }
 
 func (cfg *config) String() string {
-	return fmt.Sprintf("repository: %s, username: %s, password: %s, frequency: %d, version: %t",
-		*cfg.repository, *cfg.username, *cfg.password, *cfg.frequency, *cfg.version)
+	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, username: %s, password: %s, frequency: %d, version: %t",
+		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory, *cfg.username, *cfg.password, *cfg.frequency, *cfg.version)
 }
 
 var envSupport = map[string]bool{
+	"server":     true,
+	"account":    true,
 	"repository": true,
+	"directory":  true,
 	"username":   true,
 	"password":   true,
 	"version":    false,
@@ -110,4 +119,12 @@ func (cfg *config) envParse() error {
 	}
 
 	return err
+}
+
+func (cfg *config) validate() bool {
+	if *cfg.password == "" {
+		glog.Error("Command line argument: `--password` can not be empty, a valid value is required.")
+		return false
+	}
+	return true
 }

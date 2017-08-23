@@ -16,7 +16,12 @@ limitations under the License.
 
 package main
 
-import "time"
+import (
+	"strings"
+	"time"
+
+	"github.com/golang/glog"
+)
 
 var (
 	resyncPeriod = 30 * time.Second
@@ -36,9 +41,26 @@ func newGAServer(cfg *config) *gaServer {
 	}
 }
 
+func (as *gaServer) checkForUpdates() {
+	glog.V(2).Infof("checking for updates at: %v", time.Now())
+
+	cmdOutBytes, err := Execute(GitCmd, []string{GitStatus, GitArgShort, GitArgNoUntracked})
+	if err != nil {
+		glog.Warningf("error: executing %s %s %s %s, returned: %v",
+			GitCmd, GitStatus, GitArgShort, GitArgNoUntracked, err)
+		return
+	}
+	cmdOutString := strings.Split(string(cmdOutBytes), "\n")
+	if len(cmdOutString) > 0 {
+		glog.V(2).Infof("command output: %v", cmdOutString)
+	}
+}
+
 func (as *gaServer) run() {
-	// run the controller and queue goroutines
-	// go as.apiServer.Run(as.stopCh)
-	// Allow time for the initial startup
-	time.Sleep(5 * time.Second)
+	glog.V(2).Infof("starting run at: %v", time.Now())
+
+	go Until(as.checkForUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
+	for {
+		time.Sleep(60 * time.Second)
+	}
 }
