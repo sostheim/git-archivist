@@ -27,7 +27,7 @@ const (
 	GitDefaultServer = "github.com"
 	// GitDefaultAccount - git server account
 	GitDefaultAccount = "samsung-cnct"
-	// GitDefaultRepo - git respository
+	// GitDefaultRepo - git repository
 	GitDefaultRepo = "cluster-manifests"
 	// GitDefaultUser - git username
 	GitDefaultUser = "api-robot"

@@ -1,3 +1,7 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/samsung-cnct/git-archivist)](https://goreportcard.com/report/github.com/samsung-cnct/git-archivist)
+[![Docker Repository on Quay](https://quay.io/repository/samsung_cnct/git-archivist/status "Docker Repository on Quay")](https://quay.io/repository/samsung_cnct/git-archivist)
+[![maturity](https://img.shields.io/badge/status-alpha-red.svg)](https://github.com/github.com/samsung-cnct/git-archivist)
+
 # Git Archivist
 
 ## Running
