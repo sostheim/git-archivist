@@ -23,6 +23,9 @@ Usage of ./git-archivist:
       --version                          display version info and exit
       --vmodule moduleSpec               comma-separated list of pattern=N settings for file-filtered logging
 ```
+**Note 1** Most of the arguments have default values that are probably not useful in general, but just for their default application.
+
+**Noe 2** There are two non-defaulted required parameters that must be supplied by the user, `--password` and `--directory`.  If either of these values are not specified the application will fail to start and print an appropriate error message.
 
 ### Environment Variables
 The git-archivist application is configurable through command line configuration flags, and through a subset of environment variables. Any configuration value set on the command line takes precedence over the same value from the environment.
