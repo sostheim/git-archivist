@@ -132,6 +132,11 @@ func (as *gaServer) run() {
 		return
 	}
 
+	if *as.cfg.initonly == true {
+		glog.Infof("exiting after initalization only, at: %v", time.Now())
+		return
+	}
+
 	if as.setDirectory() == false {
 		return
 	}

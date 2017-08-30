@@ -1,5 +1,5 @@
 NAME      := git-archivist
-VERSION   := 0.1.12
+VERSION   := 0.1.14
 TYPE      := alpha
 COMMIT    := $(shell git rev-parse HEAD)
 IMAGE     := quay.io/samsung_cnct/git-archivist

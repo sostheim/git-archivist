@@ -36,6 +36,7 @@ type config struct {
 	email      *string
 	version    *bool
 	initialize *bool
+	initonly   *bool
 	frequency  *int
 }
 
@@ -50,6 +51,7 @@ func newConfig() *config {
 		email:      flag.String("email", GitDefaultEmail, "Required: git user's email address"),
 		version:    flag.Bool("version", false, "display version info and exit"),
 		initialize: flag.Bool("initial-clone", true, "initialize the state of the repository by cloning the remote"),
+		initonly:   flag.Bool("init-only", false, "initialize the state of the repository only, then exit"),
 		frequency:  flag.Int("sync-interval", 60, "number of seconds between upstream sync's when changes are present"),
 	}
 }
@@ -69,6 +71,7 @@ var envSupport = map[string]bool{
 	"email":      true,
 	"version":    false,
 	"initialize": true,
+	"initonly":   true,
 	"frequency":  true,
 }
 
@@ -134,6 +137,10 @@ func (cfg *config) validate() bool {
 	}
 	if *cfg.password == "" {
 		glog.Error("Command line argument: `--password` can not be empty, a valid value is required.")
+		return false
+	}
+	if *cfg.initialize == false && *cfg.initonly == true {
+		glog.Error("Command line argument: `--initialize=false` and `--init-only=true` conflict.")
 		return false
 	}
 	return true
