@@ -16,9 +16,12 @@
 # Dockerfile - External LoadBalancer (lbex).
 #
 
-FROM ubuntu:xenial
+FROM alpine:latest
 MAINTAINER Rick Sostheim
 LABEL vendor="Samsung CNCT"
+
+RUN apk update && \
+    apk add git 
 
 COPY build/linux_amd64/git-archivist /
 
