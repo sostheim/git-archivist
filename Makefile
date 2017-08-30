@@ -1,5 +1,5 @@
 NAME      := git-archivist
-VERSION   := 0.1.11
+VERSION   := 0.1.12
 TYPE      := alpha
 COMMIT    := $(shell git rev-parse HEAD)
 IMAGE     := quay.io/samsung_cnct/git-archivist
@@ -7,7 +7,7 @@ TAG       ?= latest
 godep=GOPATH=$(shell godep path):${GOPATH}
 
 build:
-	go build -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+	@go build -ldflags "-X main.MajorMinorPatch=$(VERSION) \
 		-X main.ReleaseType=$(TYPE) \
 		-X main.GitCommitSha=$(COMMIT)"
 

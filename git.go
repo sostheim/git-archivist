@@ -19,6 +19,12 @@ package main
 const (
 	// GitCmd - git command name
 	GitCmd = "git"
+	// GitArgC - git command argument -c name=value
+	GitArgC = "-c"
+	// GitConfigUserName - git configuration value user.name
+	GitConfigUserName = "user.name"
+	// GitConfigUserEmail - git configuration value user.email
+	GitConfigUserEmail = "user.email"
 	// GitClone - git subcommand clone
 	GitClone = "clone"
 	// GitProtocolHTTPS - git protocol

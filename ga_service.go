@@ -89,9 +89,11 @@ func (as *gaServer) pushUpdates() {
 
 func (as *gaServer) commitUpdates() {
 	glog.V(2).Infof("commit updates at: %v", time.Now())
+	configAuthor := GitConfigUserName + "=\"" + *as.cfg.username + "\""
+	configEmail := GitConfigUserEmail + "=\"" + *as.cfg.email + "\""
 	commitAuthor := "\"" + *as.cfg.username + " <" + *as.cfg.email + ">\""
 	commitMessage := "\"" + "git-archivist: auto update: " + time.Now().String() + "\""
-	_, err := Execute(GitCmd, []string{GitCommit, GitArgAuthor, commitAuthor, GitArgAM, commitMessage})
+	_, err := Execute(GitCmd, []string{GitArgC, configAuthor, GitArgC, configEmail, GitCommit, GitArgAuthor, commitAuthor, GitArgAM, commitMessage})
 	if err != nil {
 		glog.Warningf("error: executing %s %s %s, returned: %v",
 			GitCmd, GitCommit, commitMessage, err)
