@@ -4,6 +4,8 @@
 
 # Git Archivist
 
+Automation for commiting git repository tracked file updates to an upstream master repository on a `--sync-interval`
+
 ## Running
 
 The git-archivist application has a number of command line options that define how it operates.
