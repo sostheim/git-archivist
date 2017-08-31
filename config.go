@@ -57,8 +57,12 @@ func newConfig() *config {
 }
 
 func (cfg *config) String() string {
-	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, username: %s, password: %s, email: %s, frequency: %d, initialize: %t, version: %t",
-		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory, *cfg.username, *cfg.password, *cfg.email, *cfg.frequency, *cfg.initialize, *cfg.version)
+	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, "+
+		"username: %s, password: %s, email: %s, frequency: %d, initialize: %t, "+
+		"initonly: %t, version: %t",
+		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory,
+		*cfg.username, *cfg.password, *cfg.email, *cfg.frequency, *cfg.initialize,
+		*cfg.initonly, *cfg.version)
 }
 
 var envSupport = map[string]bool{

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License. 
 #
-# Dockerfile - External LoadBalancer (lbex).
+# Dockerfile - Git Archivist (git-archivist).
 #
 
 FROM alpine:latest
