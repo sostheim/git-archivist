@@ -31,9 +31,9 @@ Usage of ./git-archivist:
       --version                          display version info and exit
       --vmodule moduleSpec               comma-separated list of pattern=N settings for file-filtered logging
 ```
-**Note 1** Most of the arguments have default values that are probably not useful in general, but just for their default application.
+**Note 1** Most of the flags have default values.  The defaults are probably not useful in general, but just for their default application deployment.  In particular, the flags `--account` (default value "samsung-cnct"), and `--username` (default value "api-robot"), will need to be overridden for all but Samsung CNCT operations.  
 
-**Note 2** There are two non-defaulted required parameters that must be supplied by the user, `--password` and `--directory`.  If either of these values are not specified the application will fail to start and print an appropriate error message.
+**Note 2** There are two required parameters that must be supplied by the user, `--password` and `--directory`.  If either of these values are not specified the application will fail to start and print an appropriate error message.
 
 **Note 3** It is an error to set `--initial-clone=false` and `--init-only=true`
 
@@ -48,7 +48,7 @@ A closer look at some of the application flags:
 ### Environment Variables
 The git-archivist application is configurable through command line configuration flags, and through a subset of environment variables. Any configuration value set on the command line takes precedence over the same value from the environment.
 
-The format of the environment variable for flag for flag is composed of the prefix `GA_` and the remaining text of the flag in all uppercase with all hyphens replaced by underscores.  Fore example, `--example-flag` would map to `GA_EXAMPLE_FLAG`. 
+The format of the environment variable for flag is composed of the prefix `GA_` and the remaining text of the flag in all uppercase with all hyphens replaced by underscores.  Fore example, `--example-flag` would map to `GA_EXAMPLE_FLAG`. 
 
 Not every flag can be set via an environment variable.  This is due to the fact that the total set of flags supported by the application is an aggregate of those that belong to git-archivist and 3rd party Go packages.  The set of flags that do have corresponding environment variable support are listed below:
 * --account
@@ -85,4 +85,97 @@ Second, in the long running container, the `--init-only` assumes it's default va
 $ git-archivist --v=4 --alsologtostderr=true --password=**redacted** --directory=/.kraken/ --initial-clone=false
 ```
 
+#### Example Deployment Container Mainfest for Init Container and Sidecar
+```
+. . . Deployment Details Omitted ... 
+
+ spec:
+  containers:
+  - name: git-archivist
+    image: quay.io/samsung_cnct/git-archivist:latest
+    imagePullPolicy: Always
+    args:
+    - --v=2
+    - --logtostderr=true
+    - --directory=/root/.kraken/
+    - --initial-clone=false
+    env:
+    - name: GA_ACCOUNT
+      valueFrom:
+        secretKeyRef:
+          key: account
+          name: git-archivist-secret
+    - name: GA_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: git-archivist-secret
+    - name: GA_EMAIL
+      valueFrom:
+        secretKeyRef:
+          key: email
+          name: git-archivist-secret
+    - name: GA_REPOSITORY
+      valueFrom:
+        secretKeyRef:
+          key: repository
+          name: git-archivist-secret
+    - name: GA_SERVER
+      valueFrom:
+        secretKeyRef:
+          key: server
+          name: git-archivist-secret
+    - name: GA_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: git-archivist-secret
+    resources:
+      limits:
+        cpu: 200m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+  initContainers:
+  - name: git-archivist-init
+    image: quay.io/samsung_cnct/git-archivist:latest
+    imagePullPolicy: Always
+    args:
+    - --v=4
+    - --logtostderr=true
+    - --directory=/.kraken/
+    - --init-only=true
+    env:
+    - name: GA_ACCOUNT
+      valueFrom:
+        secretKeyRef:
+          key: account
+          name: git-archivist-secret
+    - name: GA_EMAIL
+      valueFrom:
+        secretKeyRef:
+          key: email
+          name: git-archivist-secret
+    - name: GA_REPOSITORY
+      valueFrom:
+        secretKeyRef:
+          key: repository
+          name: git-archivist-secret
+    - name: GA_SERVER
+      valueFrom:
+        secretKeyRef:
+          key: server
+          name: git-archivist-secret
+    - name: GA_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: git-archivist-secret
+    - name: GA_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: git-archivist-secret
+```
 
