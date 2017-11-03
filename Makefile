@@ -1,52 +1,34 @@
 NAME      := git-archivist
-VERSION   := 0.1.14
-TYPE      := alpha
+VERSION   := 0.2.0
+TYPE      := beta
 COMMIT    := $(shell git rev-parse HEAD)
 IMAGE     := quay.io/samsung_cnct/git-archivist
-TAG       ?= latest
-godep=GOPATH=$(shell godep path):${GOPATH}
+TAG       ?= 0.2.0
+
+dep:
+	@go get github.com/mitchellh/gox
+	@go get github.com/golang/dep
+	@go install github.com/golang/dep/cmd/dep
+	@dep ensure 	
 
 build:
 	@go build -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-		-X main.ReleaseType=$(TYPE) \
-		-X main.GitCommitSha=$(COMMIT)"
-
-compile: deps
-	@rm -rf build/
-	@$(GODEP) gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-		-X main.ReleaseType=$(TYPE) \
-		-X main.GitCommitSha=$(COMMIT) -w" \
-	-osarch="linux/386" \
-	-osarch="linux/amd64" \
-	-osarch="darwin/amd64" \
-	-output "build/{{.OS}}_{{.Arch}}/$(NAME)" \
-	./...
+                        -X main.ReleaseType=$(TYPE) \
+                        -X main.GitCommitSha=$(COMMIT)"
 
 install:
-	@$(GODEP) go install -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-		-X main.ReleaseType=$(TYPE) \
-		-X main.GitCommitSha=$(COMMIT) -w"
-
-deps:
-	go get github.com/mitchellh/gox
-	go get github.com/tools/godep
-
-dist: compile
-	$(eval FILES := $(shell ls build))
-	@rm -rf dist && mkdir dist
-	@for f in $(FILES); do \
-		(cd $(shell pwd)/build/$$f && tar -cvzf ../../dist/$$f.tar.gz *); \
-		(cd $(shell pwd)/dist && shasum -a 512 $$f.tar.gz > $$f.sha512); \
-		echo $$f; \
-	done
+	@go install -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+                          -X main.ReleaseType=$(TYPE) \
+                          -X main.GitCommitSha=$(COMMIT)"
 
 container:
-	@$(GODEP) gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
-		-X main.ReleaseType=$(TYPE) \
-		-X main.GitCommitSha=$(COMMIT) -w" \
-	-osarch="linux/amd64" \
-	-output "build/{{.OS}}_{{.Arch}}/$(NAME)" \
-	./...
+	@gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+                   -X main.ReleaseType=$(TYPE) \
+                   -X main.GitCommitSha=$(COMMIT) \
+                   -w" \
+	     -osarch="linux/amd64" \
+	     -output "build/{{.OS}}_{{.Arch}}/$(NAME)"
+	
 	docker build --rm --pull --tag $(IMAGE):$(TAG) .
 
 tag: container
@@ -56,6 +38,26 @@ push: tag
 	docker push $(IMAGE):$(COMMIT)
 	docker push $(IMAGE):$(TAG)
 
+cross-compile: dep
+	@rm -rf build/
+	@gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
+                   -X main.ReleaseType=$(TYPE) \
+                   -X main.GitCommitSha=$(COMMIT) \
+                   -w" \
+	     -osarch="linux/386" \
+	     -osarch="linux/amd64" \
+	     -osarch="darwin/amd64" \
+	     -output "build/{{.OS}}_{{.Arch}}/$(NAME)"
+
+dist: cross-compile
+	$(eval FILES := $(shell ls build))
+	@rm -rf dist && mkdir dist
+	@for f in $(FILES); do \
+		(cd $(shell pwd)/build/$$f && tar -cvzf ../../dist/$$f.tar.gz *); \
+		(cd $(shell pwd)/dist && shasum -a 512 $$f.tar.gz > $$f.sha512); \
+		echo $$f; \
+	done
+
 release: dist push
 	@latest_tag=$$(git describe --tags `git rev-list --tags --max-count=1`); \
 	comparison="$$latest_tag..HEAD"; \
@@ -64,4 +66,4 @@ release: dist push
 	github-release samsung-cnct/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
 	git pull
 
-.PHONY: build compile install deps dist release push tag container
+.PHONY: dep build install container tag push cross-compile dist release  

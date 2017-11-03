@@ -179,3 +179,68 @@ $ git-archivist --v=4 --alsologtostderr=true --password=**redacted** --directory
           name: git-archivist-secret
 ```
 
+$ dep init -no-examples
+  Using ^3.5.1 as constraint for direct dep github.com/blang/semver
+  Locking in v3.5.1 (2ee8785) for direct dep github.com/blang/semver
+  Using master as constraint for direct dep github.com/golang/glog
+  Locking in master (23def4e) for direct dep github.com/golang/glog
+  Using ^1.0.0 as constraint for direct dep github.com/spf13/pflag
+  Locking in v1.0.0 (e57e3ee) for direct dep github.com/spf13/pflag
+## Building the Project
+This project provides a `makefile` that includcs the basic functionality to build and package the project.
+
+### Dependencies
+A note on Go dependencies for this project.  The current dependency management strategy is to use the `dep` tool.  For more information on `dep` see the [GitHub project page readme](https://github.com/golang/dep).
+
+So, why not `glide`?, you ask - we'll according to the [`glide` project readme](https://github.com/Masterminds/glide#golang-dep):
+> The Go community now has the dep project to manage dependencies. Please consider trying to migrate from Glide to dep. If there is an issue preventing you from migrating please file an issue with dep so the problem can be corrected. Glide will continue to be supported for some time but is considered to be in a state of support rather than active feature development.
+
+This *is not* a guide to using `dep`, refere to project page for advanced help.  You really should at least read the following sections to understand more about managing a projects dependencies: 
+* [Adding a Dependency](https://github.com/golang/dep#adding-a-dependency)
+* [Changing Dependencies](https://github.com/golang/dep#changing-dependencies)
+* [Checking the Status of Dependencies](https://github.com/golang/dep#checking-the-status-of-dependencies)
+
+For the sake of this maintaining this project's dependencies, please follow these steps to add a new package reference to the project.
+1. Run the command: `$ dep ensure -add github.com/foo/bar`
+1. Now, import and use the package in your code!
+
+To modify an existing dependency, please follow these steps:
+1. Manually edit the file: `Gopkg.toml`
+1. Run the command: `$ dep ensure`
+
+### Build and Install the Project
+To build just the executeable locally:
+```
+$ make build
+```
+To build the executelable image locally and install it on the local system:
+```
+$ make install
+```
+### Build the Container
+Build the container image (resides in local images only):
+```
+$ make conatiner
+ 
+  . . . 
+
+$ docker images
+REPOSITORY                             TAG      IMAGE ID        CREATED           SIZE
+quay.io/samsung_cnct/git-archivist     0.2.0    7e9416dd3acb    15 minutes ago    28.9MB
+
+```
+### Build and Push the Container
+Build the container image and push the image to [Quay.io git-archivist repository](https://quay.io/repository/samsung_cnct/git-archivist):
+```
+$ make push
+```
+
+### Cutting a Release
+
+1. Install `github-release` from https://github.com/c4milo/github-release
+1. Create a github personal access token with repo read/write permissions and export it as GITHUB_TOKEN  
+1. Adjust VERSION and TYPE variables in the [Makefile](Makefile) as needed  
+1. Generate the cross compiled sources, tagged, inventoried, and make a release in GitHub:
+```
+make release
+```
