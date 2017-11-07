@@ -51,15 +51,16 @@ The git-archivist application is configurable through command line configuration
 The format of the environment variable for flag is composed of the prefix `GA_` and the remaining text of the flag in all uppercase with all hyphens replaced by underscores.  Fore example, `--example-flag` would map to `GA_EXAMPLE_FLAG`. 
 
 Not every flag can be set via an environment variable.  This is due to the fact that the total set of flags supported by the application is an aggregate of those that belong to git-archivist and 3rd party Go packages.  The set of flags that do have corresponding environment variable support are listed below:
+* --server
 * --account
+* --username
+* --password
+* --repository 
 * --directory
 * --init-only
 * --initial-clone
-* --password
-* --repository 
-* --server
 * --sync-interval
-* --username
+* --sync-to
 
 ## Example Invocation
 
