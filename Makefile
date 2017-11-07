@@ -1,12 +1,14 @@
 NAME      := git-archivist
-VERSION   := 0.2.0
+VERSION   := 0.2.1
 TYPE      := beta
 COMMIT    := $(shell git rev-parse HEAD)
 IMAGE     := quay.io/samsung_cnct/git-archivist
-TAG       ?= 0.2.0
+TAG       ?= rc
 
-dep:
+gox:
 	@go get github.com/mitchellh/gox
+ 
+dep:
 	@go get github.com/golang/dep
 	@go install github.com/golang/dep/cmd/dep
 	@dep ensure 	
@@ -21,7 +23,7 @@ install:
                           -X main.ReleaseType=$(TYPE) \
                           -X main.GitCommitSha=$(COMMIT)"
 
-container:
+container: gox
 	@gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
                    -X main.ReleaseType=$(TYPE) \
                    -X main.GitCommitSha=$(COMMIT) \
@@ -38,7 +40,7 @@ push: tag
 	docker push $(IMAGE):$(COMMIT)
 	docker push $(IMAGE):$(TAG)
 
-cross-compile: dep
+cross-compile: gox dep
 	@rm -rf build/
 	@gox -ldflags "-X main.MajorMinorPatch=$(VERSION) \
                    -X main.ReleaseType=$(TYPE) \

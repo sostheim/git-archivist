@@ -25,7 +25,8 @@ import (
 )
 
 var (
-	resyncPeriod = 30 * time.Second
+	resyncPeriod     = 30 * time.Second
+	resyncInProgress = false
 )
 
 // GA Server
@@ -103,7 +104,13 @@ func (as *gaServer) commitUpdates() {
 }
 
 func (as *gaServer) checkForUpdates() {
-	glog.V(2).Infof("checking for updates at: %v", time.Now())
+	// resyncInProgress is not a mutext, but a trivial way to avoid obvious failure modes
+	if resyncInProgress {
+		glog.V(2).Infof("resync currently in progress, skipping check for local updates at: %v", time.Now())
+		return
+	}
+
+	glog.V(2).Infof("checking for local updates at: %v", time.Now())
 
 	cmdOutBytes, err := Execute(GitCmd, []string{GitStatus, GitArgShort, GitArgNoUntracked})
 	if err != nil {
@@ -115,6 +122,10 @@ func (as *gaServer) checkForUpdates() {
 	outLines := strings.Split(string(cmdOutBytes), "\n")
 	if len(outLines) > 0 {
 		for _, line := range outLines {
+			// Check to see if the 2nd character of the output line a liternal `M`, e.g.
+			// $ git status --short --untracked-files=no
+			//  M config.go
+			//  ^
 			if len(line) > 2 && line[1] == 77 {
 				mods = true
 				break
@@ -122,7 +133,33 @@ func (as *gaServer) checkForUpdates() {
 		}
 	}
 	if mods {
+		resyncInProgress = true
+		defer func() {
+			resyncInProgress = false
+		}()
 		as.commitUpdates()
+	}
+}
+
+func (as *gaServer) checkForRemoteUpdates() {
+	// resyncInProgress is not a mutext, but a trivial way to avoid obvious failure modes
+	if resyncInProgress {
+		glog.V(2).Infof("resync currently in progress, skipping check for remote updates at: %v", time.Now())
+		return
+	}
+
+	glog.V(2).Infof("checking for remote updates at: %v", time.Now())
+
+	resyncInProgress = true
+	defer func() {
+		resyncInProgress = false
+	}()
+
+	_, err := Execute(GitCmd, []string{GitPull, GitRemoteOrigin, GitBranchMaster})
+	if err != nil {
+		glog.Warningf("error: executing %s %s %s %s, returned: %v",
+			GitCmd, GitStatus, GitArgShort, GitArgNoUntracked, err)
+		glog.Info("info: are there uncommitted changes blocking the pull's merge?")
 	}
 }
 
@@ -141,7 +178,19 @@ func (as *gaServer) run() {
 		return
 	}
 
-	go Until(as.checkForUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
+	if *as.cfg.direction == "remote" || *as.cfg.direction == "both" {
+		// sync (push) all changes locall to the remote origin master branch
+		go Until(as.checkForUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
+		if *as.cfg.direction == "both" {
+			time.Sleep(time.Duration(*as.cfg.frequency) * time.Second / 2)
+		}
+	}
+
+	if *as.cfg.direction == "local" || *as.cfg.direction == "both" {
+		// sync (pull) all changes from the remote origin master to the local master branch
+		go Until(as.checkForRemoteUpdates, time.Duration(*as.cfg.frequency)*time.Second, as.stopCh)
+	}
+
 	for {
 		time.Sleep(3600 * time.Second)
 	}

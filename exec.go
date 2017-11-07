@@ -75,7 +75,7 @@ func Execute(command string, arguments []string) ([]byte, error) {
 	cmd.Stdout = stdoutBuf
 	cmd.Stderr = stderrBuf
 
-	if debug {
+	if debug || bool(glog.V(4)) {
 		glog.Infof("run cmd:  %s, args: %s", command, arguments)
 		glog.Infof("run cmd:  %s, env ${args}: %s", command, expandedArguments)
 	}
@@ -85,8 +85,8 @@ func Execute(command string, arguments []string) ([]byte, error) {
 
 	if err := cmd.Run(); err != nil {
 		glog.Warningf("cmd:  %s, args: %s returned error: %v", command, expandedArguments, err)
-		glog.Warningf("cmd:  %s, stderr: %s", command, string(stderrBuf.Bytes()))
-		glog.Warningf("cmd:  %s, stdout: %v", command, string(stdoutBuf.Bytes()))
+		glog.V(4).Infof("cmd:  %s, stderr: %s", command, string(stderrBuf.Bytes()))
+		glog.V(4).Infof("cmd:  %s, stdout: %v", command, string(stdoutBuf.Bytes()))
 		return stderrBuf.Bytes(), err
 	}
 	return stdoutBuf.Bytes(), nil

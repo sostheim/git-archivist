@@ -38,6 +38,7 @@ type config struct {
 	initialize *bool
 	initonly   *bool
 	frequency  *int
+	direction  *string
 }
 
 func newConfig() *config {
@@ -53,16 +54,17 @@ func newConfig() *config {
 		initialize: flag.Bool("initial-clone", true, "initialize the state of the repository by cloning the remote"),
 		initonly:   flag.Bool("init-only", false, "initialize the state of the repository only, then exit"),
 		frequency:  flag.Int("sync-interval", 60, "number of seconds between upstream sync's when changes are present"),
+		direction:  flag.String("sync-to", "remote", "must be one of `remote`, `local`, `both`.  Sync changes to/from: `remote` push local commits to remote, `local` pull remote changes to local, `both` manage bi-directional updates."),
 	}
 }
 
 func (cfg *config) String() string {
 	return fmt.Sprintf("server: %s, account: %s, repository: %s, directory: %s, "+
 		"username: %s, password: %s, email: %s, frequency: %d, initialize: %t, "+
-		"initonly: %t, version: %t",
+		"initonly: %t, sync-to: %s, version: %t",
 		*cfg.server, *cfg.account, *cfg.repository, *cfg.directory,
 		*cfg.username, *cfg.password, *cfg.email, *cfg.frequency, *cfg.initialize,
-		*cfg.initonly, *cfg.version)
+		*cfg.initonly, *cfg.direction, *cfg.version)
 }
 
 var envSupport = map[string]bool{
@@ -77,6 +79,7 @@ var envSupport = map[string]bool{
 	"initialize": true,
 	"initonly":   true,
 	"frequency":  true,
+	"direction":  true,
 }
 
 func variableName(name string) string {
@@ -136,15 +139,20 @@ func (cfg *config) envParse() error {
 
 func (cfg *config) validate() bool {
 	if *cfg.directory == "" {
-		glog.Error("Command line argument: `--directory` can not be empty, a valid value is required.")
+		glog.Error("Configuraiton flag: `--directory` can not be empty, a valid value is required.")
 		return false
 	}
 	if *cfg.password == "" {
-		glog.Error("Command line argument: `--password` can not be empty, a valid value is required.")
+		glog.Error("Configuraiton flag: `--password` can not be empty, a valid value is required.")
 		return false
 	}
 	if *cfg.initialize == false && *cfg.initonly == true {
-		glog.Error("Command line argument: `--initialize=false` and `--init-only=true` conflict.")
+		glog.Error("Configuraiton flags: `--initialize=false` and `--init-only=true` conflict.")
+		return false
+	}
+	if *cfg.direction == "" ||
+		(*cfg.direction != "remote" && *cfg.direction != "local" && *cfg.direction != "both") {
+		glog.Error("Configuraiton flag: `--direction` must be one of: `remote`, `local`, or `both`")
 		return false
 	}
 	return true

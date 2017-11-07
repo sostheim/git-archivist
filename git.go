@@ -65,4 +65,8 @@ const (
 	GitRebase = "rebase"
 	// GitAdd - git subcommand add
 	GitAdd = "add"
+	// GitPull - git subcommand pull
+	GitPull = "pull"
+	// GitArgRebase - pull --rebase
+	GitArgRebase = "--rebase"
 )
