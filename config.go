@@ -139,20 +139,20 @@ func (cfg *config) envParse() error {
 
 func (cfg *config) validate() bool {
 	if *cfg.directory == "" {
-		glog.Error("Configuraiton flag: `--directory` can not be empty, a valid value is required.")
+		glog.Error("Configuration flag: `--directory` can not be empty, a valid value is required.")
 		return false
 	}
 	if *cfg.password == "" {
-		glog.Error("Configuraiton flag: `--password` can not be empty, a valid value is required.")
+		glog.Error("Configuration flag: `--password` can not be empty, a valid value is required.")
 		return false
 	}
 	if *cfg.initialize == false && *cfg.initonly == true {
-		glog.Error("Configuraiton flags: `--initialize=false` and `--init-only=true` conflict.")
+		glog.Error("Configuration flags: `--initialize=false` and `--init-only=true` conflict.")
 		return false
 	}
 	if *cfg.direction == "" ||
 		(*cfg.direction != "remote" && *cfg.direction != "local" && *cfg.direction != "both") {
-		glog.Error("Configuraiton flag: `--direction` must be one of: `remote`, `local`, or `both`")
+		glog.Error("Configuration flag: `--direction` must be one of: `remote`, `local`, or `both`")
 		return false
 	}
 	return true

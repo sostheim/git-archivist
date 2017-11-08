@@ -170,7 +170,7 @@ func (as *gaServer) run() {
 	}
 
 	if *as.cfg.initonly == true {
-		glog.Infof("exiting after initalization only, at: %v", time.Now())
+		glog.Infof("exiting after initialization only, at: %v", time.Now())
 		return
 	}
 
