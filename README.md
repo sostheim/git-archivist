@@ -1,6 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/samsung-cnct/git-archivist)](https://goreportcard.com/report/github.com/samsung-cnct/git-archivist)
 [![Docker Repository on Quay](https://quay.io/repository/samsung_cnct/git-archivist/status "Docker Repository on Quay")](https://quay.io/repository/samsung_cnct/git-archivist)
-[![maturity](https://img.shields.io/badge/status-alpha-red.svg)](https://github.com/github.com/samsung-cnct/git-archivist)
+[![maturity](https://img.shields.io/badge/status-beta-blue.svg)](https://github.com/github.com/samsung-cnct/git-archivist)
 
 # Git Archivist
 
@@ -26,6 +26,7 @@ Usage of ./git-archivist:
       --server string                    git repository host (default "github.com")
       --stderrthreshold severity         logs at or above this threshold go to stderr (default 2)
       --sync-interval int                number of seconds between upstream sync's when changes are present (default 60)
+      --sync-to remote                   must be one of remote, `local`, `both`.  Sync changes to/from: `remote` push local commits to remote, `local` pull remote changes to local, `both` manage bi-directional updates. (default "remote")
       --username string                  git remote login username (default "api-robot")
   -v, --v Level                          log level for V logs
       --version                          display version info and exit
@@ -39,11 +40,12 @@ Usage of ./git-archivist:
 
 ### Arguments
 A closer look at some of the application flags:
-- **--account**: The github account/owner/organization that own's the repository that will, optionally be cloned, used for updates
-- **--username**: A real, valid, credentialed account, that has at a minimum "repo" access.
+- **--account**: The github account/owner/organization that owns the repository that will be used by archivist
+- **--username**: A real, valid, credentialed account, that has at a minimum "repo" access
 - **--initialize**: default value: true.  If `--initialize=false`, then then the archivist expects there to be an existing valid git repository found at `--directory`.  Otherwise, the default behavior is to clone the repository in to the working `--directory`
-- **--init-only**: default value: false.  If `--init-only=true`, then then the archivist will perform the inital clone of the specified repository and exit upon completion. Otherwise, the default behavior is to start executing the timed syncrhonization process.
+- **--init-only**: default value: false.  If `--init-only=true`, then then the archivist will perform the initial clone of the specified repository and exit upon completion. Otherwise, the default behavior is to start executing the timed synchronization process.
 - **--sync-interval**: default value: 60s.  The frequency with which working `--directory` is checked for tracked file updates.
+- **--sync-to**: default value: remote.  Sync to remote means that all local changes will be synced to the remote origin master.  Alternatively this flag may be set to `local` which indicates that all changes merged to origin master will be synced to the local origin master.  Finally the flag may be set to `both` which indicates that bi-directional updates will be synced.  
 
 ### Environment Variables
 The git-archivist application is configurable through command line configuration flags, and through a subset of environment variables. Any configuration value set on the command line takes precedence over the same value from the environment.
@@ -74,7 +76,7 @@ $ git-archivist --v=4 --alsologtostderr --password **redacted** --directory /Use
 
 ### As an Init Container and Sidecar
 
-The following example shows how to use git-archivist as an init container to ensure that the git repository is cloned before the same executeable begins life as a sidecar.  This example again uses default values for the user `api-robot` and default email address `cnct.api.robot...`
+The following example shows how to use git-archivist as an init container to ensure that the git repository is cloned before the same executable begins life as a sidecar.  This example again uses default values for the user `api-robot` and default email address `cnct.api.robot...`
 
 First, as an init container clone an existing repository (the default private repository `cluster-manifests`), to the desired location and exit.
 ```
@@ -86,7 +88,7 @@ Second, in the long running container, the `--init-only` assumes it's default va
 $ git-archivist --v=4 --alsologtostderr=true --password=**redacted** --directory=/.kraken/ --initial-clone=false
 ```
 
-#### Example Deployment Container Mainfest for Init Container and Sidecar
+#### Example Deployment Container Manifest for Init Container and Sidecar
 ```
 . . . Deployment Details Omitted ... 
 
@@ -180,15 +182,8 @@ $ git-archivist --v=4 --alsologtostderr=true --password=**redacted** --directory
           name: git-archivist-secret
 ```
 
-$ dep init -no-examples
-  Using ^3.5.1 as constraint for direct dep github.com/blang/semver
-  Locking in v3.5.1 (2ee8785) for direct dep github.com/blang/semver
-  Using master as constraint for direct dep github.com/golang/glog
-  Locking in master (23def4e) for direct dep github.com/golang/glog
-  Using ^1.0.0 as constraint for direct dep github.com/spf13/pflag
-  Locking in v1.0.0 (e57e3ee) for direct dep github.com/spf13/pflag
 ## Building the Project
-This project provides a `makefile` that includcs the basic functionality to build and package the project.
+This project provides a `makefile` that includes the basic functionality to build and package the project.
 
 ### Dependencies
 A note on Go dependencies for this project.  The current dependency management strategy is to use the `dep` tool.  For more information on `dep` see the [GitHub project page readme](https://github.com/golang/dep).
@@ -196,7 +191,7 @@ A note on Go dependencies for this project.  The current dependency management s
 So, why not `glide`?, you ask - we'll according to the [`glide` project readme](https://github.com/Masterminds/glide#golang-dep):
 > The Go community now has the dep project to manage dependencies. Please consider trying to migrate from Glide to dep. If there is an issue preventing you from migrating please file an issue with dep so the problem can be corrected. Glide will continue to be supported for some time but is considered to be in a state of support rather than active feature development.
 
-This *is not* a guide to using `dep`, refere to project page for advanced help.  You really should at least read the following sections to understand more about managing a projects dependencies: 
+This *is not* a guide to using `dep`, refer to project page for advanced help.  You really should at least read the following sections to understand more about managing a projects dependencies: 
 * [Adding a Dependency](https://github.com/golang/dep#adding-a-dependency)
 * [Changing Dependencies](https://github.com/golang/dep#changing-dependencies)
 * [Checking the Status of Dependencies](https://github.com/golang/dep#checking-the-status-of-dependencies)
@@ -210,18 +205,18 @@ To modify an existing dependency, please follow these steps:
 1. Run the command: `$ dep ensure`
 
 ### Build and Install the Project
-To build just the executeable locally:
+To build just the executable locally:
 ```
 $ make build
 ```
-To build the executelable image locally and install it on the local system:
+To build the executable image locally and install it on the local system:
 ```
 $ make install
 ```
 ### Build the Container
 Build the container image (resides in local images only):
 ```
-$ make conatiner
+$ make container
  
   . . . 
 
