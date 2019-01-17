@@ -9,8 +9,8 @@ spec:
     emptyDir: {}
   containers:
   - name: git-archivist
-    image: quay.io/samsung_cnct/git-archivist:latest
+    image: sostheim/git-archivist:latest
     args: ["--v=2", "--logtostderr=true"]
     volumeMounts:
     - name: repository-directory
-      mountPath: /.kraken/
+      mountPath: /.backup/

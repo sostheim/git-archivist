@@ -2,7 +2,7 @@ NAME      := git-archivist
 VERSION   := 0.2.2
 TYPE      := beta
 COMMIT    := $(shell git rev-parse HEAD)
-IMAGE     := quay.io/samsung_cnct/git-archivist
+IMAGE     := sostheim/git-archivist
 TAG       ?= rc
 
 gox:
@@ -65,7 +65,7 @@ release: dist push
 	comparison="$$latest_tag..HEAD"; \
 	if [ -z "$$latest_tag" ]; then comparison=""; fi; \
 	changelog=$$(git log $$comparison --oneline --no-merges --reverse); \
-	github-release samsung-cnct/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
+	github-release sostheim/$(NAME) $(VERSION) "$$(git rev-parse --abbrev-ref HEAD)" "**Changelog**<br/>$$changelog" 'dist/*'; \
 	git pull
 
 .PHONY: dep build install container tag push cross-compile dist release  
